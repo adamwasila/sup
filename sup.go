@@ -29,7 +29,8 @@ func New(conf *Supfile) (*Stackup, error) {
 
 // Run runs set of commands on multiple hosts defined by network sequentially.
 // TODO: This megamoth method needs a big refactor and should be split
-//       to multiple smaller methods.
+//
+//	to multiple smaller methods.
 func (sup *Stackup) Run(network *Network, envVars EnvList, commands ...*Command) error {
 	if len(commands) == 0 {
 		return errors.New("no commands to be run")
@@ -37,11 +38,14 @@ func (sup *Stackup) Run(network *Network, envVars EnvList, commands ...*Command)
 
 	env := envVars.AsExport()
 
+	ciphers := network.Ciphers
+	macs := network.MACs
+
 	// Create clients for every host (either SSH or Localhost).
 	var bastion *SSHClient
 	if network.Bastion != "" {
 		bastion = &SSHClient{}
-		if err := bastion.Connect(network.Bastion); err != nil {
+		if err := bastion.Connect(network.Bastion, ciphers, macs); err != nil {
 			return errors.Wrap(err, "connecting to bastion failed")
 		}
 	}
@@ -60,7 +64,7 @@ func (sup *Stackup) Run(network *Network, envVars EnvList, commands ...*Command)
 				local := &LocalhostClient{
 					env: env + `export SUP_HOST="` + host + `";`,
 				}
-				if err := local.Connect(host); err != nil {
+				if err := local.Connect(host, ciphers, macs); err != nil {
 					errCh <- errors.Wrap(err, "connecting to localhost failed")
 					return
 				}
@@ -76,12 +80,12 @@ func (sup *Stackup) Run(network *Network, envVars EnvList, commands ...*Command)
 			}
 
 			if bastion != nil {
-				if err := remote.ConnectWith(host, bastion.DialThrough); err != nil {
+				if err := remote.ConnectWith(host, ciphers, macs, bastion.DialThrough); err != nil {
 					errCh <- errors.Wrap(err, "connecting to remote host through bastion failed")
 					return
 				}
 			} else {
-				if err := remote.Connect(host); err != nil {
+				if err := remote.Connect(host, ciphers, macs); err != nil {
 					errCh <- errors.Wrap(err, "connecting to remote host failed")
 					return
 				}

@@ -327,6 +327,8 @@ func main() {
 				network.User = conf.User
 				network.IdentityFile = resolvePath(conf.IdentityFile)
 				network.Hosts = []string{fmt.Sprintf("%s:%d", conf.HostName, conf.Port)}
+				network.Ciphers = conf.Ciphers
+				network.MACs = conf.MACs
 			}
 		}
 	}

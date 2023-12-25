@@ -116,14 +116,14 @@ type SSHDialFunc func(net, addr string, config *ssh.ClientConfig) (*ssh.Client, 
 
 // Connect creates SSH connection to a specified host.
 // It expects the host of the form "[ssh://]host[:port]".
-func (c *SSHClient) Connect(host string) error {
-	return c.ConnectWith(host, ssh.Dial)
+func (c *SSHClient) Connect(host string, ciphers, macs []string) error {
+	return c.ConnectWith(host, ciphers, macs, ssh.Dial)
 }
 
 // ConnectWith creates a SSH connection to a specified host. It will use dialer to establish the
 // connection.
 // TODO: Split Signers to its own method.
-func (c *SSHClient) ConnectWith(host string, dialer SSHDialFunc) error {
+func (c *SSHClient) ConnectWith(host string, ciphers, macs []string, dialer SSHDialFunc) error {
 	if c.connOpened {
 		return fmt.Errorf("Already connected")
 	}
@@ -136,6 +136,10 @@ func (c *SSHClient) ConnectWith(host string, dialer SSHDialFunc) error {
 	}
 
 	config := &ssh.ClientConfig{
+		Config: ssh.Config{
+			Ciphers: ciphers,
+			MACs:    macs,
+		},
 		User: c.user,
 		Auth: []ssh.AuthMethod{
 			authMethod,

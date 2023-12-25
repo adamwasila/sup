@@ -32,6 +32,9 @@ type Network struct {
 	// Should these live on Hosts too? We'd have to change []string to struct, even in Supfile.
 	User         string // `yaml:"user"`
 	IdentityFile string // `yaml:"identity_file"`
+
+	Ciphers []string
+	MACs    []string
 }
 
 // Networks is a list of user-defined networks
