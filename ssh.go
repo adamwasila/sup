@@ -70,7 +70,7 @@ func (c *SSHClient) parseHost(host string) error {
 	}
 
 	// Add default port, if not set
-	if strings.Contains(c.host, ":") {
+	if !strings.Contains(c.host, ":") {
 		c.host += ":22"
 	}
 
